@@ -126,7 +126,7 @@ Aşağıda chatbotun bazı sonuçları yer almaktadır. 👇
 
 | Örnek 1 | Örnek 2 | Örnek 3 |
 |:--------:|:--------:|:--------:|
-| ![Veri Seti Örneği 1](images/sample1.png) | ![Veri Seti Örneği 2](images/sample2.png) | ![Veri Seti Örneği 3](images/sample3.png) |
+| ![Veri Seti Örneği 1](sample1.png) | ![Veri Seti Örneği 2](sample2.png) | 
 
   
 ## 🚀 Kurulum
