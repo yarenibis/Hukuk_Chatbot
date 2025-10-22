@@ -13,7 +13,7 @@ Kullanıcı, doğal dilde bir Türkçe hukuk sorusu yazdığında sistem:
 2. **RAG mimarisi** sayesinde bağlamı Large Language Model'e (LLM) aktarır,  
 3. **Qwen modelini** kullanarak kısa, resmi bir Türkçe yanıt üretir.
 
----
+
 
 ## 📚 Veri Seti Hakkında
 
@@ -33,34 +33,39 @@ Bu veri seti, **araştırmacılar, hukuk profesyonelleri ve geliştiriciler** i�
 - Boş değerler temizlendi
 - Metinler standartlaştırıldı
 - Türkçe karakterler korundu
----
 
 ### 🔹 Örnek Kayıt
 
 Aşağıda veri setinin örnek bir kısmı yer almaktadır 👇
 
-![Veri Seti Örneği](ornek_kayit.png)
+![Veri Seti Örneği](veriseti_ornek.png)
+
 
 
 
 ## 🛠️ Teknolojiler
 
-### Backend
-- **Python 3.8+**
-- **LangChain** - RAG pipeline framework
-- **Chroma DB** - Vektör veritabanı
-- **Transformers** - Model yönetimi
-- **Sentence Transformers** - Embedding modeli
+| Katman | Teknoloji | Açıklama |
+|--------|------------|-----------|
+| **Veri Seti** | `datasets` (HF) | `alibayram/hukuk_soru_cevap` veri setinden 2080 kayıt. |
+| **Vektör DB** | `Chroma` | Embedding sonuçlarını saklar ve benzerlik tabanlı arama yapar. |
+| **Embedding** | `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` | Türkçe destekli çok dilli MiniLM modeli. |
+| **LLM (Yanıt Üretici)** | `Qwen/Qwen3-1.7B` | Türkçe dil yeteneği güçlü açık kaynaklı model (CPU üzerinde). |
+| **RAG Framework** | `LangChain` | TextSplitter, Retriever ve Embedding yönetimi. |
+| **Arayüz** | `Streamlit` | Kullanıcı etkileşimi ve sohbet penceresi tasarımı. |
+| **Ortam Yönetimi** | `python-dotenv` | Hugging Face token ve yapılandırmaların .env dosyasından okunması. |
 
-### Modeller
-- **Embedding:** `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`
-- **LLM:** `Qwen/Qwen3-1.7B` (yerel)
-- **Text Splitter:** RecursiveCharacterTextSplitter
-
-### Frontend
-- **Streamlit** - Web arayüzü
 
 ## 🏗️ Mimari
+
+### 🧠 Genel Mimari Akış
+
+1. **Kullanıcı**, Streamlit arayüzünden Türkçe bir hukuk sorusu yazar.  
+2. **Retriever**, Chroma vektör veritabanı üzerinden en alakalı 6 belgeyi bulur.  
+3. Bu belgeler `build_context()` fonksiyonunda birleştirilerek **bağlam (context)** oluşturulur.  
+4. Bağlam ve kullanıcı sorusu birlikte **Qwen3-1.7B** modeline verilir.  
+5. Model yanıtı üretir; `<think>` gibi içsel düşünceler regex ile temizlenir.  
+6. Sonuç, Streamlit arayüzünde “assistant” mesajı olarak kullanıcıya gösterilir.  
 
 ```text
 Kullanıcı Sorusu
@@ -85,42 +90,91 @@ Kullanıcı Sorusu
         ▼
 Streamlit Arayüzü (Chat UI)
 ```
+
+### ⚙️ RAG Pipeline Mimarisi
+
+Retrieval-Augmented Generation (RAG) yapısı, projenin temelini oluşturur.  
+Bu mimari sayesinde sistem, sadece veri setindeki bilgilere dayanarak bağlamlı ve güvenilir Türkçe yanıtlar üretir.
+
 ---
 
-### RAG Pipeline
-### Bileşenler
+### 🔹 1. Veri Hazırlama Katmanı
+**Amaç:** Türkçe hukuk veri setini düzenlemek, temizlemek ve vektör aramalarına uygun hale getirmek.
 
-#### 1. Veri Hazırlama
-- Hugging Face dataset yükleme
-- Metin temizleme ve normalleştirme
-- Vektör veritabanı oluşturma
+- Hugging Face üzerinden `alibayram/hukuk_soru_cevap` veri seti yüklenir.  
+- `load_dataset()` fonksiyonu ile veriler çekilir, `soru` ve `cevap` sütunları normalize edilir.  
+- LangChain’in `RecursiveCharacterTextSplitter` sınıfı ile metinler 1200 karakterlik parçalar halinde bölünür.  
+- Her belge “Soru: …\n\nCevap: …” formatında hazırlanır ve embedding işlemine aktarılır.
 
-#### 2. Retrieval Sistemi
-- Çok dilli embedding modeli
-- Chroma vektör veritabanı
-- Benzerlik tabanlı belge arama
-
-#### 3. Generation Sistemi
-- Qwen3-1.7B modeli
-- Türkçe prompt optimizasyonu
-- Bağlamsal yanıt üretimi
-
-#### 4. Kullanıcı Arayüzü
-- Streamlit tabanlı web arayüzü
-- Gerçek zamanlı sohbet
-- Geçmiş saklama
-
-## 📊 Sonuçlar
-
-- ✅ Türkçe hukuk terminolojisi işleme
-- ✅ Bağlama duyarlı yanıtlar
-- ✅ Yerel çalışma (internet gerekmez)
-- ✅ Kullanıcı dostu arayüz
-- ✅ Yanıt süresi uzun olabilmekte
 ---
 
-## Örnek Çıktılar
-### 🔹 Örnek Kayıtlar
+### 🔹 2. Retrieval Katmanı
+**Amaç:** Kullanıcının sorduğu soruya en uygun bağlamı bulmak.
+
+- **Embedding modeli:** `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`  
+  - Çok dilli, Türkçe performansı yüksek bir modeldir.  
+- **Vektör veritabanı:** `Chroma`  
+  - Metin embedding’leri saklar ve benzerlik tabanlı (cosine similarity) arama yapar.  
+- **Retriever:**  
+  - `vectordb.as_retriever(search_kwargs={"k": 6})`  
+  - Kullanıcı sorusuna en yakın **6 belge** geri döndürülür.  
+- Bu belgeler `build_context()` fonksiyonu ile birleştirilip model için bağlam oluşturur.
+
+---
+
+### 🔹 3. Generation Katmanı
+**Amaç:** RAG’den gelen bağlamı kullanarak nihai Türkçe yanıtı üretmek.
+
+- **Model:** `Qwen/Qwen3-1.7B` (Transformers, PyTorch, CPU)  
+- **Tokenizer:** `AutoTokenizer.apply_chat_template()` kullanılarak Qwen formatına uygun mesaj yapısı hazırlanır.  
+- **Prompt tasarımı:**  
+  - Türkçe yanıt zorlaması (“Cevaplarını her zaman TÜRKÇE olarak ver”)  
+  - İçsel düşünce üretimi yasak (“Asla <think> yazma”)  
+  - Maksimum 2–3 paragraf uzunluğunda, resmi, kısa ve bağlama sadık yanıtlar.  
+- **Üretim parametreleri:**  
+  - `temperature = 0.4` → kararlı yanıt  
+  - `top_p = 0.9`, `repetition_penalty = 1.2`  
+  - `max_new_tokens = 400`  
+- **Temizlik:** Regex ile `<think>` bölümleri çıkarılır, sadece nihai yanıt bırakılır.
+
+---
+
+### 🔹 4. Kullanıcı Arayüzü Katmanı
+**Amaç:** Kullanıcı ile etkileşimli ve kolay bir sohbet deneyimi sunmak.
+
+- **Arayüz:** Streamlit  
+  - `st.chat_input()` ile kullanıcıdan soru alınır.  
+  - `st.chat_message("assistant")` ile modelin yanıtı gösterilir.  
+- **Özellikler:**
+  - Gerçek zamanlı sohbet deneyimi  
+  - Mesaj geçmişi (`st.session_state.messages`) saklanır  
+  - İlk açılışta dataset ve model `@st.cache_resource` ile yüklenir → hız artışı sağlar  
+
+---
+
+## 🧭 Sonuç
+
+Bu mimari ile:
+- Türkçe hukuk alanında, bağlam tabanlı ve güvenilir yanıtlar üretilebilmektedir.  
+- RAG yaklaşımı sayesinde **ezber değil, belgeye dayalı cevaplar** sağlanmaktadır.  
+- CPU üzerinde çalıştığı için erişilebilirlik yüksek, ancak yanıt süresi görece uzundur.  
+
+### ⚙️ Performans ve Yanıt Süresi
+
+- **Model:** Qwen3-1.7B (CPU, float32)  
+- **Yanıt Süresi:** Ortalama **2–3 dakika** arası  
+- **Neden:**  
+  - Modelin boyutu (1.7B parametre) ve float32 işlem tipi CPU’da yüksek gecikme yaratmaktadır.  
+  - RAG pipeline’ında embedding sorgusu + generate işlemi ardışık çalışmaktadır.
+
+**Performans İyileştirme Önerileri:**
+- Daha küçük model: `Qwen2.5-0.5B-Instruct` veya `Mistral-7B-Instruct-v0.2` (4-bit quantization).  
+- Modeli `torch_dtype=torch.float16` veya `bitsandbytes` 8-bit quantization ile yüklemek.  
+- `RETRIEVER_K` değerini 6’dan 4’e düşürmek.  
+- `max_new_tokens`’u 250 civarına çekmek.
+
+
+### 🔹 Örnek Sonuçlar
 
 Aşağıda chatbotun bazı sonuçları yer almaktadır. 👇
 
@@ -128,7 +182,10 @@ Aşağıda chatbotun bazı sonuçları yer almaktadır. 👇
 |:--------:|:--------:|:--------:|
 | ![Veri Seti Örneği 1](sample1.png) | ![Veri Seti Örneği 2](sample2.png) | 
 
-  
+
+## 🌐 Demo
+**Veri Seti:** [Hugging Face Space linki](https://huggingface.co/spaces/Yarenibis/hukuk_chatbot) 
+
 ## 🚀 Kurulum
 1. **Repository klonlama**
 ```bash
