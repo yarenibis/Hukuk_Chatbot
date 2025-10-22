@@ -22,6 +22,8 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 # 0️⃣ Ortam Değişkenleri
 # ─────────────────────────────
 load_dotenv()
+HF_TOKEN = os.getenv("HUGGINGFACEHUB_API_TOKEN")
+
 APP_TITLE = "⚖️ Türkçe Hukuk Chatbotu"
 APP_CAPTION = "Türkçe hukuk sorularını Qwen3-1.7B modeliyle yanıtlar."
 
@@ -48,7 +50,7 @@ def load_hf_df(dataset_name: str, split: str) -> pd.DataFrame:
     """
        Hugging Face üzerindeki veri setini yükler ve 'soru' ile 'cevap' sütunlarını düzenler.
     """
-    ds = load_dataset(dataset_name, split=split)
+    ds = load_dataset(dataset_name, split=split, token=HF_TOKEN)
     df = ds.to_pandas()
     df = df.rename(columns={c.lower(): c for c in df.columns})
     if "soru" not in df.columns or "cevap" not in df.columns:
