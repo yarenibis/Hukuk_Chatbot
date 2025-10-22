@@ -185,6 +185,7 @@ Aşağıda chatbotun bazı sonuçları yer almaktadır. 👇
 
 ## 🌐 Demo
 **Veri Seti:** [Hugging Face Space linki](https://huggingface.co/spaces/Yarenibis/hukuk_chatbot) 
+secret kısmına kendi hugging face token'ınızı yazmayı unutmayın!!!
 
 ## 🚀 Kurulum
 1. **Repository klonlama**
