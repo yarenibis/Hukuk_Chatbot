@@ -84,7 +84,7 @@ Kullanıcı Sorusu
         │
         ▼
 Streamlit Arayüzü (Chat UI)
-
+```
 ---
 
 ### RAG Pipeline
@@ -112,18 +112,21 @@ Streamlit Arayüzü (Chat UI)
 
 ## 📊 Sonuçlar
 
-### Başarılar
 - ✅ Türkçe hukuk terminolojisi işleme
 - ✅ Bağlama duyarlı yanıtlar
 - ✅ Yerel çalışma (internet gerekmez)
 - ✅ Kullanıcı dostu arayüz
-- ✅ Hızlı yanıt süreleri
+- ✅ Yanıt süresi uzun olabilmekte
+---
 
-### Performans
-- **Doğruluk:** Bağlamsal tutarlılık
-- **Süre:** 5-15 saniye
-- **Dil:** %100 Türkçe yanıt
-- **Bağlam:** Otomatik bilgi çekme
+## Örnek Çıktılar
+### 🔹 Örnek Kayıtlar
+
+Aşağıda chatbotun bazı sonuçları yer almaktadır. 👇
+
+| Örnek 1 | Örnek 2 | Örnek 3 |
+|:--------:|:--------:|:--------:|
+| ![Veri Seti Örneği 1](images/sample1.png) | ![Veri Seti Örneği 2](images/sample2.png) | ![Veri Seti Örneği 3](images/sample3.png) |
 
   
 ## 🚀 Kurulum
@@ -131,18 +134,18 @@ Streamlit Arayüzü (Chat UI)
 ```bash
 git clone <repository-url>
 cd turkce-hukuk-chatbot
-
+````
 2. **Sanal ortam oluşturma**
 ```bash
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate    # Windows
-
+````
 3. **Paketleri yükleme**
 ```bash
 pip install -r requirements.txt
-
-3. **Uygulamayı çalıştır**
+````
+4. **Uygulamayı çalıştır**
 ```bash
 streamlit run app.py
 
